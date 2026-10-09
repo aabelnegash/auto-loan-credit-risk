@@ -1,0 +1,46 @@
+# Local data and submission artifacts
+data/
+exports/
+submissions/
+private/
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.sas7bdat
+*.sashdat
+*.astore
+*.parquet
+*.zip
+
+# Implementation stays in the private technical repository during competition
+scripts/
+tests/
+*.py
+*.sas
+*.ds2
+
+# Screenshots and reference documents
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.pdf
+*.docx
+
+# Credentials and local environment
+.env
+.env.*
+*.pem
+*.key
+credentials*
+secrets*
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+tmp/
+.DS_Store
+Thumbs.db
