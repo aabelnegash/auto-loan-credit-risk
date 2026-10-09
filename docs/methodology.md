@@ -2,29 +2,69 @@
 
 ## Problem and target
 
-The modeling task estimates borrower default probability. The decisioning task uses those predictions to assign an approval outcome. Ranking borrowers by risk and evaluating a lending policy are separate steps: stronger predictive metrics do not automatically imply a better financial outcome.
+The modeling task estimates borrower default probability from historical loan data. The decisioning task uses those predictions to assign an approval outcome. Ranking borrowers by risk and evaluating a lending policy are separate steps: stronger predictive metrics do not automatically imply a better financial outcome.
 
-## Model comparison
+## Evaluation design
 
-Models were assessed on the same stratified training and validation partition. Application identifiers were excluded from predictors to keep record matching separate from prediction.
+The 100,000 historical loans were split into 60,000 training records and 40,000 validation records using stratification. Candidate comparisons retained the same partition. Application identifiers were excluded from predictors and used to match exported results.
 
-The comparison used AUC and KS to assess risk separation, alongside average squared error and log loss to assess probability predictions. Training and validation metrics were reviewed together to identify large performance gaps.
+| Metric | Purpose | Preferred direction |
+| --- | --- | --- |
+| AUC | Measures how well predictions rank defaulters above nondefaulters | Higher |
+| KS | Measures the largest separation between the two outcome groups' score distributions | Higher |
+| Average squared error | Measures squared differences between predicted probabilities and observed outcomes | Lower |
+| Log loss | Evaluates probability predictions and penalizes confident incorrect predictions | Lower |
 
-Forward Logistic Regression was selected for the initial submission. Its sequential predictor selection provides a way to build a smaller candidate model from the available inputs. Missing-value treatment and numeric standardization were incorporated into the scoring path.
+Training and validation metrics were reviewed together. Classification accuracy alone does not describe risk separation or probability quality, and the model's classification output is separate from the loan-approval policy.
 
-Fitting diagnostics were reviewed alongside performance metrics. The original logistic fit raised information-matrix warnings and large coefficient standard errors. Following preprocessing changes, the selected fit satisfied its convergence criterion and no longer produced those matrix warnings. This improved the recorded diagnostics; it does not establish that every coefficient is reliable or explain the exact cause of the original warnings.
+## Initial model comparison
+
+The initial standard-pipeline comparison covered six model families, including both forward and stepwise logistic regression:
+
+| Initial candidate | Validation AUC | Validation KS |
+| --- | ---: | ---: |
+| Forward Logistic Regression | 0.7991 | 0.4462 |
+| Stepwise Logistic Regression | 0.7956 | 0.4458 |
+| Ensemble | 0.7950 | 0.4445 |
+| Forest | 0.7797 | 0.4132 |
+| Gradient Boosting | 0.7320 | 0.3356 |
+| Decision Tree | 0.5909 | 0.1807 |
+| Neural Network | 0.5650 | 0.1300 |
+
+These are initial runs, not the best attainable results for each model family. Later completed trials included revised Gradient Boosting, an ensemble candidate, and standardized Forward Logistic Regression. Their aggregate results appear in the [project overview](../README.md#selected-development-candidates).
+
+## Selected model and fitting review
+
+Forward Logistic Regression estimates default probability for a binary outcome. Forward selection starts with an intercept and adds predictors based on model-fit improvements. Missing-value treatment and numeric standardization were incorporated into the selected scoring path.
+
+The original fit raised 13 information-matrix warnings and large coefficient standard errors. The standardized fit satisfied its convergence criterion and produced no information-matrix warnings, although five metadata/warehouse warnings remained. This improved the recorded diagnostics; the exact cause of the original warnings was not established.
+
+| Selected-fit metric | Training | Validation |
+| --- | ---: | ---: |
+| AUC | 0.7975 | 0.7992 |
+| KS | 0.4436 | 0.4490 |
+| Average squared error | 0.0962 | 0.0961 |
+| Log loss | 0.3210 | 0.3208 |
+
+The selected model had close training/validation results and slightly better recorded validation metrics than the original logistic fit. Numerical convergence does not, by itself, establish reliable coefficient inference, probability calibration, or future performance.
 
 ## Decision workflow
 
-The selected model was registered in Model Manager and connected to Intelligent Decisioning. The flow applies model scoring before assigning an approval outcome through business rules.
+The selected model was registered in Model Manager on October 3, 2026 and connected to Intelligent Decisioning. The flow applies model scoring before an approval branch routes the application to one of two assignment rule sets. Both paths return a binary approval outcome.
 
-Policy candidates were evaluated using approval volume, observed defaults among approved loans, and illustrative financial scenarios. Exact thresholds, financial formulas, and policy comparisons remain private during the competition.
+Policy candidates were evaluated using approval volume, observed defaults among approved loans, and illustrative financial scenarios. Sensitivity checks examined whether changes in loss and discounting assumptions altered the preferred candidate. These comparisons use hypothetical assumptions rather than a known competition scoring formula or realized profit.
+
+Exact thresholds, financial formulas, policy results, and detailed configurations remain private during the competition.
 
 ## Output validation
 
-The scoring review checked application coverage and matched records by identifier. Model probabilities were compared between model-only and completed-flow outputs, and final approval assignments were checked against the saved rule.
+Verification covered three stages:
 
-Public scoring covered all 100,000 applications. Local Python checks confirmed the submission format, unique identifiers, binary approval values, and agreement with an independently exported application list. The implementation of these checks remains in the private technical repository.
+1. **Model-only scoring:** checked probability validity and reproduced the displayed training/validation metrics from exported scores at the SAS assessment resolution.
+2. **Complete decision flow:** matched historical records by identifier and confirmed unchanged probabilities, labels, and partition membership. Approval assignments agreed with the saved rule on every row.
+3. **Public scoring:** checked all 100,000 applications against an independent source export, confirmed unique identifiers and valid probabilities, and found zero decision-rule disagreements.
+
+The submission used approval values already generated by SAS. Local Python checks verified file structure, identifier integrity, complete application coverage, and binary decisions before upload. The first submission was accepted on October 8, 2026. Validation code and applicant-level outputs remain outside this public repository.
 
 ## Limitations
 

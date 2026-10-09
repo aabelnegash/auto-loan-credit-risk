@@ -4,9 +4,19 @@
 
 Default-risk modeling and auto-loan decisioning using SAS Viya. The project uses synthetic loan data for the fictional iLink Capital Bank in the [SAS Hackathon 2026 Student Track](https://www.kaggle.com/competitions/sas-hackathon-2026).
 
-The work covers data exploration, model comparison, fitting diagnostics, model registration, and application scoring through SAS Intelligent Decisioning.
+The project connects predictive modeling to a tested lending decision flow. Work completed through October 8, 2026 includes model comparison, fitting diagnostics, model registration, full application scoring, and an accepted Kaggle submission.
 
 **Tools:** SAS Visual Analytics, Model Studio, Model Manager, Intelligent Decisioning, and Python for local output checks.
+
+## Workflow
+
+| Stage | Tool | Completed work |
+| --- | --- | --- |
+| Exploration | Visual Analytics | Reviewed loan data and an initial decision-tree model |
+| Modeling | Model Studio | Compared candidate models, reviewed fitting diagnostics, and tested preprocessing changes |
+| Registration | Model Manager | Registered the selected Forward Logistic Regression model |
+| Decisioning | Intelligent Decisioning | Connected model scoring to approval and decline rules; tested the complete flow |
+| Verification | Python and Kaggle | Audited scoring outputs and submitted the verified approval file |
 
 ## Data
 
@@ -16,30 +26,50 @@ The modeling dataset contains 100,000 historical loans with a binary default out
 
 Logistic regression, decision tree, forest, gradient boosting, neural network, and ensemble models were evaluated on the same validation partition. Model selection considered ranking performance, probability error, fitting diagnostics, and the difference between training and validation results.
 
-### Forward Logistic Regression
+### Selected development candidates
 
-Forward Logistic Regression was selected and registered in Model Manager. Logistic regression estimates the probability of a binary outcome, such as borrower default. Forward selection starts with an intercept and adds predictors based on improvements in model fit.
+The leading completed trials produced the following results on the same 40,000-loan validation cohort. These runs used different pipelines and configurations; they are development comparisons rather than an exhaustive benchmark of each algorithm.
 
-The development work included missing-value treatment, standardization of numeric inputs, and review of convergence and coefficient uncertainty. The selected fit satisfied its convergence criterion and had similar training and validation performance.
+| Candidate | Training AUC | Validation AUC | Validation KS | Validation log loss |
+| --- | ---: | ---: | ---: | ---: |
+| Standardized Forward Logistic Regression | 0.7975 | 0.7992 | 0.4490 | 0.3208 |
+| Ensemble, revised trial | 0.7969 | 0.7987 | 0.4484 | 0.3212 |
+| Gradient Boosting, revised trial | 0.8257 | 0.7960 | 0.4471 | 0.3229 |
 
-| Metric | Training | Validation |
-| --- | ---: | ---: |
-| AUC | 0.7975 | 0.7992 |
-| KS | 0.4436 | 0.4490 |
-| Average squared error | 0.0962 | 0.0961 |
-| Log loss | 0.3210 | 0.3208 |
+Forward Logistic Regression was selected for its validation results and close training/validation performance. Gradient Boosting had a larger AUC gap, while the ensemble performed similarly to the selected model. The small differences between the leading candidates have not been established as statistically significant.
+
+### Fitting diagnostics
+
+The original logistic fit produced **13 information-matrix warnings** and large coefficient standard errors. After numeric standardization was added to the existing preprocessing path, the selected fit satisfied its convergence criterion and produced **zero information-matrix warnings**. Validation performance changed only slightly.
+
+This resolved the recorded matrix warnings without establishing their exact cause or the reliability of every coefficient. The [methodology](docs/methodology.md) includes the initial model comparison, metric definitions, and complete training/validation results for the selected fit.
 
 ## Decisioning and scoring
 
-The registered model was connected to a SAS Intelligent Decisioning flow that converts default probabilities into approval decisions. Policy evaluation considered approval volume, observed defaults, and illustrative loan-value scenarios.
+The registered model was connected to a SAS Intelligent Decisioning flow that converts default probabilities into approval decisions. The flow scores each application, evaluates the approval branch, assigns a binary outcome, and returns the result.
 
-The completed flow scored 100,000 public applications. Output checks verified unique identifiers, complete application coverage, binary decisions, and agreement with the saved decision logic.
+Policy evaluation considered approval volume, observed defaults, and illustrative loan-value scenarios. Predictive model quality and lending-policy performance were assessed separately because a stronger risk ranking does not automatically produce a better financial outcome.
+
+### Scoring audit
+
+The completed flow scored the historical dataset and all 100,000 public applications. Historical probabilities were unchanged between the model-only test and the complete decision flow. The public scoring audit verified:
+
+| Check | Result |
+| --- | --- |
+| Applications scored | 100,000 |
+| Unique, nonmissing application identifiers | 100,000 |
+| Coverage against an independent input export | Exact match |
+| Missing or invalid probabilities | 0 |
+| Approval values | Binary on every row |
+| Disagreements with the saved decision rule | 0 |
+
+The submission retained the approval values generated by SAS. Local checks verified the required file structure and application coverage before upload.
+
+## Competition result
 
 The first submission was accepted on October 8, 2026, with a Kaggle public score of **48.168**. This is an interim competition result, not a final ranking or realized bank profit.
 
-## Technical overview
-
-[docs/methodology.md](docs/methodology.md) describes the evaluation approach, workflow checks, and limitations.
+Model comparison, registration, decision-flow testing, and the initial submission are complete. Further competition development remains in the private working repository.
 
 ## Publication scope
 
