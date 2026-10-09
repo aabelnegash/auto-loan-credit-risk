@@ -13,10 +13,10 @@ private/
 *.parquet
 *.zip
 
-# Implementation stays in the private technical repository during competition
-scripts/
-tests/
+# Only the submission validator and its tests are published
 *.py
+!scripts/validate_submission.py
+!tests/test_validate_submission.py
 *.sas
 *.ds2
 
