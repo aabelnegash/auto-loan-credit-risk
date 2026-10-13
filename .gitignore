@@ -38,9 +38,6 @@ tmp/
 .DS_Store
 Thumbs.db
 
-# Code is maintained locally
-scripts/
-tests/
-*.py
+# SAS scoring exports are kept local
 *.sas
 *.ds2
