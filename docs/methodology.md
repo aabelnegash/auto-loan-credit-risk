@@ -10,7 +10,7 @@ The original logistic fit produced information-matrix warnings and large coeffic
 
 Autotuning was unavailable, so additional trials used manual settings. A gradient boosting trial with log-loss early stopping reached validation AUC 0.7960, compared with 0.7320 for its default run.
 
-## Cutoff evaluation
+## Initial cutoff evaluation
 
 Seven default-probability cutoffs were compared on the 40,000 validation loans: 5%, 7.5%, 10%, 13%, 15%, 20%, and 30%. Each policy approves loans strictly below its cutoff.
 
@@ -34,16 +34,40 @@ The 13% cutoff had the highest historical scenario value among the seven candida
 
 The leading cutoff changes with loss assumptions. At zero discount, a 50% principal loss favors 20%, while a 75% loss favors 15%. The financial comparison supports the initial policy; it does not establish the optimal competition cutoff.
 
+## Policy comparison
+
+Three policies were compared using the same registered model on October 16, 2026:
+
+- **Initial cutoff:** approve when predicted default probability is below 0.13.
+- **Value-only:** approve when predicted expected value is positive under the full-principal-loss scenario above.
+- **Combined:** approve when either the initial cutoff or the value-only condition is satisfied.
+
+Results on the 40,000 validation loans:
+
+| Policy | Approved | Defaults among approvals | Approved default rate | Historical scenario value (USD) |
+| --- | ---: | ---: | ---: | ---: |
+| Initial cutoff | 26,042 | 1,416 | 5.44% | 28,719,860.78 |
+| Value-only | 24,786 | 1,328 | 5.36% | 29,437,520.53 |
+| Combined | 26,895 | 1,542 | 5.73% | 28,850,726.04 |
+
+The combined policy retained all initial approvals and added 853 validation loans, including 126 observed defaults. Its historical scenario value exceeded the initial policy by USD 130,865.26 under the stated assumptions. The larger approval volume also increased the default rate among approved loans.
+
+The value-only policy had the highest historical scenario value but scored below the initial policy on Kaggle. The combined policy produced the best public score, 49.548, compared with 48.168 initially and 47.082 for value-only. This difference shows why the illustrative calculation is not a substitute for the competition's undisclosed scoring formula.
+
+The analysis script currently compares the initial and value-only policies. The combined rule is implemented in SAS; its exports were checked separately against the intended logic and source records.
+
 ## Decision scoring
 
-Model version 1.1 is connected to decision version 1.0 in SAS Intelligent Decisioning. The branch expression is `EM_EVENTPROBABILITY < 0.13`; the two rule sets assign integer approval values of 1 or 0.
+Model version 1.1 is connected to three separate SAS Intelligent Decisioning flows: `iLinkAutoLoans_AN_R1`, `iLinkAutoLoans_AN_Value`, and `iLinkAutoLoans_AN_Combined`. Each branch routes to the existing approval or decline rule set, which assigns integer approval values of 1 or 0.
 
-A labeled scoring test checked all 100,000 records. `EM_EVENTPROBABILITY` matched `P_DEFAULT1`, probabilities matched the earlier model-only output by `LOAN_ID`, and every approval assignment matched the saved cutoff.
+The combined flow's historical scoring test checked all 100,000 records. Probabilities and default labels matched the earlier scored data by `LOAN_ID`, and every approval assignment matched the combined rule. Validation membership was recovered by joining IDs to the original scored file.
 
-The public scoring output contained 100,000 unique application IDs, matching an independently exported scoring input. All public decisions matched the cutoff. The Python validator checks CSV structure and ID coverage; the scoring audit separately checked the approval rule.
+The combined public output contained 100,000 unique application IDs, matching an independently exported scoring input. All public decisions matched the combined rule, and probabilities were unchanged from the initial model. It retained all 65,145 initial approvals and added 2,082, producing 67,227 approvals and 32,773 declines.
+
+The submission retained only `LOAN_ID` and `APPROVED`, in that order, from the SAS scoring output. The Python validator checked structure, row count, unique IDs, binary decisions, and exact reference ID coverage before upload. It validates the submission file; it does not evaluate predictive accuracy or calculate approval decisions.
 
 ## Evaluation limits
 
-The validation cohort informed both model and cutoff selection, so these results are not an independent final test. Probability calibration and borrower-group fairness have not been assessed. The illustrative loan values are separate from Kaggle's public score and do not represent realized bank profit.
+The validation cohort informed both model and policy selection, so these results are not an independent final test. Public leaderboard comparisons also inform development and may not hold on the private evaluation set. Probability calibration and borrower-group fairness have not been assessed. The illustrative loan values are separate from Kaggle's public score and do not represent realized bank profit.
 
-This repository contains documentation only. Exact model reproduction requires access to SAS Viya and the competition data, along with the unrecorded partition seed and SAS configuration exports. Python scripts, generated-data tests, and local data files are excluded from this repository.
+This private repository tracks Python analysis, submission validation, and generated-data tests. Local data files and SAS exports are excluded. Exact model reproduction requires access to SAS Viya and competition data, along with the unrecorded partition seed and SAS configuration exports.
