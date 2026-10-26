@@ -1,0 +1,45 @@
+/* Shared details for both project presentations. */
+:root{--muted:#526465;--line:#d4dcd6;--wash:#e6ede7;--mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace}
+.site-header{width:100%;max-width:1440px;height:82px;margin:0 auto;padding:0 max(5vw,24px);display:flex;align-items:center;justify-content:space-between;gap:28px;border-bottom:1px solid var(--line)}
+.project-home{font:600 15px/1.4 var(--sans);letter-spacing:-.025em;text-decoration:none;white-space:nowrap}
+.site-header nav{display:flex;align-items:center;gap:30px;font:400 13px/1.5 var(--sans)}
+.site-header nav a{text-decoration:none;white-space:nowrap}
+.site-header nav a:hover{color:var(--teal);text-decoration:none}
+.site-header .source-link{margin:0;border-left:1px solid var(--line);padding-left:30px}
+.repository-name,.repo-label{font:400 11px/1.6 var(--mono);letter-spacing:.04em;text-transform:none;color:var(--muted);text-decoration:none}
+.repository-name span,.repo-label span{margin-left:8px}
+h1{font-family:var(--serif);font-weight:400;letter-spacing:-.055em;line-height:1.02}
+.contents{display:block;position:sticky;top:32px;align-self:start;font:400 12px/1.4 var(--sans)}
+.contents nav{position:static;display:grid;align-items:stretch;gap:3px;border-left:1px solid var(--line);padding:0 0 0 17px;font:inherit}
+.contents-label{display:none}
+.contents nav a{margin:0;border:0;padding:7px 0;color:var(--muted);text-decoration:none;line-height:1.4}
+.contents nav a:hover,.contents nav a.active,.contents nav a.is-active{color:var(--teal)}
+.contents nav a.active,.contents nav a.is-active{font-weight:650}
+.readme-link{display:inline-block;margin:28px 0 0 17px;font:11px/1.5 var(--mono);text-decoration:none;color:var(--teal)}
+.content-section h2,.section-body h2{font-family:var(--serif);font-size:clamp(29px,2.7vw,39px);font-weight:400;line-height:1.15;letter-spacing:-.035em}
+code{border:0;border-radius:0}
+.cleaning-project main{padding-right:max(5vw,24px);padding-left:max(5vw,24px)}
+.repository{max-width:1440px;margin:30px auto 0;padding:65px max(5vw,24px) 75px;border-top:1px solid var(--line)}
+.cleaning-project .repository{max-width:none;padding:65px 0 75px}
+.repository-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:26px}
+.repository h2{font:400 42px/1.15 var(--serif);letter-spacing:-.04em;margin:0}
+.repository-heading>a{font:12px/1.5 var(--mono);color:var(--teal);text-decoration:none}
+.file-columns{columns:3;column-gap:28px}
+.file-group{border-top:1px solid var(--line);break-inside:avoid;margin:0 0 25px}
+.file-group summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font:12px/1.5 var(--mono);padding:17px 0}
+.file-group summary::-webkit-details-marker{display:none}
+.file-group summary>span{font-size:16px;transition:transform .15s}
+.file-group:not([open]) summary>span{transform:rotate(45deg)}
+.file-group ul{list-style:none;padding:0;margin:0}
+.file-group li{font:11px/1.55 var(--mono);color:var(--muted);margin:0;padding:0}
+.file-group li a{display:flex;justify-content:space-between;gap:10px;text-decoration:none;overflow-wrap:anywhere;padding:9px 0}
+.file-group li a span{color:var(--teal);flex-shrink:0}
+.site-footer{width:100%;max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:25px;padding:33px max(5vw,24px);border-top:0;background:var(--ink);color:var(--paper);font:11px/1.5 var(--mono)}
+.site-footer a{text-decoration:none}
+.site-footer a:hover{color:#acd1bf}
+.site-footer .footer-title{font:22px/1.4 var(--serif);letter-spacing:-.02em}
+.section-body .screenshot-note{font:12px/1.7 var(--sans);color:var(--muted);margin:12px 0 28px}
+@media(max-width:1000px){.site-header nav{gap:18px}.site-header .source-link{padding-left:18px}.file-columns{columns:2}}
+@media(max-width:800px){.site-header{height:70px;padding:0 22px}.project-home{font-size:14px}.site-header nav>a:not(.portfolio-link){display:none}.site-header nav>a.portfolio-link{display:block;padding-left:0;border:0}.reading-layout,.project-body{display:block}.contents{position:static;display:block;margin-bottom:35px}.contents nav{display:flex;overflow-x:auto;gap:0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;scrollbar-width:thin}.contents nav a{white-space:nowrap;padding:15px 15px 15px 0;margin-right:12px}.readme-link{display:none}}
+@media(max-width:720px){.repository-name,.repo-label{font-size:10px}.cleaning-project main{padding-right:22px;padding-left:22px}.reading-layout{margin-top:45px}.repository{padding:40px 22px}.cleaning-project .repository{padding:40px 0}.repository h2{font-size:34px}.file-columns{columns:1}.file-group{margin-bottom:17px}.content-section h2,.section-body h2{font-size:30px}.site-footer{display:grid;padding:32px 22px;gap:18px}.site-footer .footer-title{font-size:23px}}
+@media print{.site-header,.contents,.site-footer{display:none}.repository,.cleaning-project .repository{padding:0}}
