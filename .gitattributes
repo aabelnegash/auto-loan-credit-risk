@@ -1,0 +1,5 @@
+# Website files are project documentation.
+/index.html linguist-documentation=true
+/portfolio.css linguist-documentation=true
+/portfolio-shared.css linguist-documentation=true
+/portfolio.js linguist-documentation=true
