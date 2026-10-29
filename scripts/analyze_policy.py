@@ -193,3 +193,107 @@ for loss_fraction in [0.25, 0.50, 0.75, 1.00]:
     difference = candidate_value - current_value
 
     print(f"Loss fraction {loss_fraction:.0%}: {difference:,.2f} USD")
+
+
+validation["approved_combined"] = (
+    validation["approved_current"]
+    | validation["approved_candidate"]
+)
+
+combined_approved = validation.loc[validation["approved_combined"]]
+
+print("\nCombined policy:")
+print("Approvals:", len(combined_approved))
+print("Approval rate:", validation["approved_combined"].mean())
+print("Defaults among approvals:", combined_approved["DEFAULT"].sum())
+print("Default rate among approvals:", combined_approved["DEFAULT"].mean())
+
+results = []
+
+for cutoff in [0.12, 0.13, 0.14, 0.15]:
+    approved = (
+        (validation["EM_EVENTPROBABILITY"] < cutoff)
+        | validation["approved_candidate"]
+    )
+
+    selected = validation.loc[approved]
+
+    results.append({
+        "cutoff": cutoff,
+        "approvals": len(selected),
+        "approval_pct": approved.mean() * 100,
+        "defaults": selected["DEFAULT"].sum(),
+        "default_pct": selected["DEFAULT"].mean() * 100,
+        "principal_millions": selected["LOAN_AMOUNT"].sum() / 1_000_000,
+    })
+
+comparison = pd.DataFrame(results)
+
+print("\nCombined policy cutoff comparison:")
+print(comparison.round(3).to_string(index=False))
+
+sensitivity = []
+baseline = validation["approved_combined"]
+
+for cutoff in [0.12, 0.13, 0.14, 0.15]:
+    approved = (
+        (validation["EM_EVENTPROBABILITY"] < cutoff)
+        | validation["approved_candidate"]
+    )
+
+    added = approved & ~baseline
+    removed = baseline & ~approved
+
+    result = {
+        "cutoff": cutoff,
+        "added": added.sum(),
+        "removed": removed.sum(),
+    }
+
+    for loss_fraction in [0.25, 0.50, 0.75, 1.00]:
+        scenario_value = validation["scheduled_interest"].where(
+            validation["DEFAULT"] == 0,
+            -loss_fraction * validation["LOAN_AMOUNT"],
+        )
+
+        difference = (
+            scenario_value.loc[added].sum()
+            - scenario_value.loc[removed].sum()
+        )
+
+        result[f"loss_{loss_fraction:.0%}"] = difference
+
+    sensitivity.append(result)
+
+print("\nHistorical scenario change versus cutoff 0.13, in USD:")
+print(pd.DataFrame(sensitivity).round(2).to_string(index=False))
+
+# Compare a few cutoff and loss assumptions on the same validation loans.
+assert len(validation) == 40_000
+comparison = []
+
+for cutoff, assumed_loss in [(0.14, 1.0), (0.16, 1.0), (0.18, 1.0),
+                             (0.20, 1.0), (0.14, 0.75), (0.16, 0.75),
+                             (0.14, 0.50)]:
+    expected_value = (
+        (1 - default_probability) * validation["scheduled_interest"]
+        - assumed_loss * default_probability * principal
+    )
+    approved = (default_probability < cutoff) | (expected_value > 0)
+    selected = validation.loc[approved]
+    result = {
+        "cutoff": cutoff,
+        "assumed_loss": assumed_loss,
+        "approved": int(approved.sum()),
+        "approval_pct": approved.mean() * 100,
+        "default_pct": selected["DEFAULT"].mean() * 100,
+    }
+    for actual_loss in [0.50, 0.75, 1.00]:
+        value = validation["scheduled_interest"].where(
+            validation["DEFAULT"] == 0, -actual_loss * principal
+        )
+        result[f"value_loss_{actual_loss:.0%}_millions"] = value.loc[approved].sum() / 1_000_000
+    comparison.append(result)
+
+print("\nCutoff and value-rule sensitivity (historical scenarios, not Kaggle scores):")
+print(pd.DataFrame(comparison).round(3).to_string(index=False))
