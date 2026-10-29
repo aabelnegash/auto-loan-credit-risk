@@ -71,3 +71,16 @@ The submission retained only `LOAN_ID` and `APPROVED`, in that order, from the S
 The validation cohort informed both model and policy selection, so these results are not an independent final test. Public leaderboard comparisons also inform development and may not hold on the private evaluation set. Probability calibration and borrower-group fairness have not been assessed. The illustrative loan values are separate from Kaggle's public score and do not represent realized bank profit.
 
 This private repository tracks Python analysis, submission validation, and generated-data tests. Local data files and SAS exports are excluded. Exact model reproduction requires access to SAS Viya and competition data, along with the unrecorded partition seed and SAS configuration exports.
+
+
+## October 29 cutoff test
+
+The combined 0.14 submission scored 50.005 on Kaggle and approved 68,811 public applications. A separate SAS decision, `iLinkAutoLoans_AN_Combined_016`, retains registered logistic model v1.1 and the existing value condition, raising only the PD cutoff from 0.14 to 0.16.
+
+Both SAS scoring tests completed successfully. The historical output is `AN_COMBINED_016_TRAIN_20261029`; the public output is `AN_C016_PUBLIC_20261029_R2`, both in the personal CASUSER library. The public test was rerun with a fresh table name after an output-table promotion name collision.
+
+The original validation cohort approved 28,905 of 40,000 loans (72.26%), including 1,832 defaults (6.34% of approvals). Public scoring approved 72,135 of 100,000 applications, adding 3,324 approvals versus 0.14.
+
+`scripts/prepare_sas_submission.py` compares the new SAS exports with the matching 0.14 exports by LOAN_ID. It checks unchanged probabilities within the older exports' ten-decimal precision (maximum difference below 5e-11), binary decisions, and agreement with the existing 0.14 approvals OR PD < 0.16 on every row. This is a baseline and threshold consistency check; the script does not recalculate the loan economics. Validation membership comes from the original partitioned scoring export. The two-column CSV passes the existing submission validator against all 100,000 official IDs.
+
+Kaggle upload is pending. These checks establish scoring and file integrity; they do not establish an improvement in the hidden Responsible Profit Score.

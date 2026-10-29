@@ -43,15 +43,19 @@ Standardization reduced information-matrix warnings from 13 to 0 while preservin
 
 The initial policy approved loans with predicted default probability below 0.13. Two additional policies were evaluated on October 16: a value-only rule and a combined rule that approves when either the initial cutoff or the value rule is satisfied.
 
-All three policies use the same registered model, version 1.1. The model was not retrained for this comparison.
+These policies and the later cutoff candidates use the same registered model, version 1.1. The model was not retrained for these comparisons.
 
 | Submission date | Policy | Kaggle public score |
 | --- | --- | ---: |
 | October 8, 2026 | Initial cutoff | 48.168 |
 | October 16, 2026 | Value-only | 47.082 |
-| October 16, 2026 | Combined | **49.548** |
+| October 16, 2026 | Combined, PD < 0.13 | 49.548 |
+| October 16, 2026 | Combined, PD < 0.14 | **50.005** |
+| October 29, 2026 | Combined, PD < 0.16 | Not submitted yet |
 
-The combined policy is the current best submission, improving the public score by **1.380 points**. It produced 67,227 approvals and 32,773 declines across 100,000 public applications. Scoring checks confirmed complete ID coverage, unchanged model probabilities, and agreement with the intended rule on every row.
+The combined 0.14 policy is the current best submission at **50.005**, improving the initial score by **1.837**. It approved 68,811 of 100,000 public applications.
+
+On October 29, a separate combined 0.16 flow was created and scored successfully in SAS. It approved 28,905 of 40,000 validation loans, including 1,832 defaults (6.34% of approvals). Public scoring approved 72,135 applications, adding 3,324 approvals versus 0.14. The submission passed probability consistency, threshold-rule, and official ID coverage checks. Kaggle upload is pending; its score is not yet known.
 
 The [methodology](docs/methodology.md) records the policy comparison, financial assumptions, and evaluation limits. Public scores are interim competition results, not realized bank profit or final rankings.
 
@@ -59,6 +63,7 @@ The [methodology](docs/methodology.md) records the policy comparison, financial 
 
 - [docs/methodology.md](docs/methodology.md): modeling choices, policy comparisons, and scoring checks.
 - [scripts/analyze_policy.py](scripts/analyze_policy.py): historical comparison of the initial and value-only policies, including loss sensitivity.
+- [scripts/prepare_sas_submission.py](scripts/prepare_sas_submission.py): compares the new SAS exports with the 0.14 baseline and extracts the two-column Kaggle file.
 - [scripts/validate_submission.py](scripts/validate_submission.py): submission format, record count, and ID coverage checks.
 - [tests/test_validate_submission.py](tests/test_validate_submission.py): validator tests using generated records.
 
