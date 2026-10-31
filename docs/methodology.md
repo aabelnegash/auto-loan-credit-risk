@@ -1,75 +1,111 @@
 # Methodology
 
-## Problem and target
+The [SAS workflow walkthrough](sas-workflow.md) covers the Model Studio settings, model registration, Intelligent Decisioning branch expression, and scoring tests.
 
-The modeling task estimates borrower default probability from historical loan data. The decisioning task uses those predictions to assign an approval outcome. Ranking borrowers by risk and evaluating a lending policy are separate steps: stronger predictive metrics do not automatically imply a better financial outcome.
+## Model development
 
-## Evaluation design
+The training data was split into 60,000 training loans and 40,000 validation loans, stratified by `DEFAULT`. All model comparisons used the same partition. `LOAN_ID` was excluded from predictors.
 
-The 100,000 historical loans were split into 60,000 training records and 40,000 validation records using stratification. Candidate comparisons retained the same partition. Application identifiers were excluded from predictors and used to match exported results.
+The selected pipeline applies imputation, standardizes interval inputs, and fits Forward Logistic Regression with a Bernoulli target and logit link. Categorical inputs remain unchanged. Forward selection, stopping, and final model selection use SBC (Schwarz Bayesian criterion).
 
-| Metric | Purpose | Preferred direction |
-| --- | --- | --- |
-| AUC | Measures how well predictions rank defaulters above nondefaulters | Higher |
-| KS | Measures the largest separation between the two outcome groups' score distributions | Higher |
-| Average squared error | Measures squared differences between predicted probabilities and observed outcomes | Lower |
-| Log loss | Evaluates probability predictions and penalizes confident incorrect predictions | Lower |
+The original logistic fit produced information-matrix warnings and large coefficient standard errors. Standardizing interval inputs reduced those warnings from 13 to 0, and the new fit satisfied its convergence criterion. Close training and validation metrics supported selection of model version 1.1 for the first submission.
 
-Training and validation metrics were reviewed together. Classification accuracy alone does not describe risk separation or probability quality, and the model's classification output is separate from the loan-approval policy.
+Autotuning was unavailable, so additional trials used manual settings. A gradient boosting trial with log-loss early stopping reached validation AUC 0.7960, compared with 0.7320 for its default run.
 
-## Initial model comparison
+## Initial cutoff evaluation
 
-The initial standard-pipeline comparison covered six model families, including both forward and stepwise logistic regression:
+Seven default-probability cutoffs were compared on the 40,000 validation loans: 5%, 7.5%, 10%, 13%, 15%, 20%, and 30%. Each policy approves loans strictly below its cutoff.
 
-| Initial candidate | Validation AUC | Validation KS |
-| --- | ---: | ---: |
-| Forward Logistic Regression | 0.7991 | 0.4462 |
-| Stepwise Logistic Regression | 0.7956 | 0.4458 |
-| Ensemble | 0.7950 | 0.4445 |
-| Forest | 0.7797 | 0.4132 |
-| Gradient Boosting | 0.7320 | 0.3356 |
-| Decision Tree | 0.5909 | 0.1807 |
-| Neural Network | 0.5650 | 0.1300 |
+The financial comparison calculates scheduled full-term interest from loan principal, annual rate, and term. For principal `L`, scheduled interest `I`, historical default outcome `d`, and predicted default probability `p`:
 
-These are initial runs, not the best attainable results for each model family. Later completed trials included revised Gradient Boosting, an ensemble candidate, and standardized Forward Logistic Regression. Their aggregate results appear in the [project overview](../README.md#selected-development-candidates).
+```text
+Historical scenario value = (1 - d) * I - d * L
+Predicted expected value  = (1 - p) * I - p * L
+```
 
-## Selected model and fitting review
+This scenario assumes repayers pay all scheduled interest and default causes loss of the full original principal. It excludes recovery, payments before default, funding and servicing costs, fees, discounting, and early repayment.
 
-Forward Logistic Regression estimates default probability for a binary outcome. Forward selection starts with an intercept and adds predictors based on model-fit improvements. Missing-value treatment and numeric standardization were incorporated into the selected scoring path.
+The 13% cutoff had the highest historical scenario value among the seven candidates under these assumptions:
 
-The original fit raised 13 information-matrix warnings and large coefficient standard errors. The standardized fit satisfied its convergence criterion and produced no information-matrix warnings, although five metadata/warehouse warnings remained. This improved the recorded diagnostics; the exact cause of the original warnings was not established.
+| Validation measure | PD < 0.13 |
+| --- | ---: |
+| Approved loans | 26,042 |
+| Approval rate | 65.11% |
+| Defaults among approved loans | 1,416 |
+| Default rate among approved loans | 5.44% |
 
-| Selected-fit metric | Training | Validation |
-| --- | ---: | ---: |
-| AUC | 0.7975 | 0.7992 |
-| KS | 0.4436 | 0.4490 |
-| Average squared error | 0.0962 | 0.0961 |
-| Log loss | 0.3210 | 0.3208 |
+The leading cutoff changes with loss assumptions. At zero discount, a 50% principal loss favors 20%, while a 75% loss favors 15%. The financial comparison supports the initial policy; it does not establish the optimal competition cutoff.
 
-The selected model had close training/validation results and slightly better recorded validation metrics than the original logistic fit. Numerical convergence does not, by itself, establish reliable coefficient inference, probability calibration, or future performance.
+## Policy comparison
 
-## Decision workflow
+Three policies were compared using the same registered model on October 16, 2026:
 
-The selected model was registered in Model Manager on October 3, 2026 and connected to Intelligent Decisioning. The flow applies model scoring before an approval branch routes the application to one of two assignment rule sets. Both paths return a binary approval outcome.
+- **Initial cutoff:** approve when predicted default probability is below 0.13.
+- **Value-only:** approve when predicted expected value is positive under the full-principal-loss scenario above.
+- **Combined:** approve when either the initial cutoff or the value-only condition is satisfied.
 
-Policy candidates were evaluated using approval volume, observed defaults among approved loans, and illustrative financial scenarios. Sensitivity checks examined whether changes in loss and discounting assumptions altered the preferred candidate. These comparisons use hypothetical assumptions rather than a known competition scoring formula or realized profit.
+Results on the 40,000 validation loans:
 
-The October 16 policy comparison kept the registered model and its probability outputs unchanged. Each candidate was checked against historical records and the intended approval logic before public scoring. The best submission increased the public score from 48.168 to 49.548 through the approval policy alone.
+| Policy | Approved | Defaults among approvals | Approved default rate | Historical scenario value (USD) |
+| --- | ---: | ---: | ---: | ---: |
+| Initial cutoff | 26,042 | 1,416 | 5.44% | 28,719,860.78 |
+| Value-only | 24,786 | 1,328 | 5.36% | 29,437,520.53 |
+| Combined | 26,895 | 1,542 | 5.73% | 28,850,726.04 |
 
-Exact thresholds, financial formulas, detailed policy comparisons, and model configurations remain private during the competition.
+The combined policy retained all initial approvals and added 853 validation loans, including 126 observed defaults. Its historical scenario value exceeded the initial policy by USD 130,865.26 under the stated assumptions. The larger approval volume also increased the default rate among approved loans.
 
-## Output validation
+The value-only policy had the highest historical scenario value but scored below the initial policy on Kaggle. Among these three policies, the combined policy produced the best public score, 49.548, compared with 48.168 initially and 47.082 for value-only. The later 0.14 combined policy scored 50.005. This difference shows why the illustrative calculation is not a substitute for the competition's undisclosed scoring formula.
 
-Verification covered three stages:
+The analysis script compares the initial, value-only, and combined policies, including cutoff and loss assumptions. The combined rule is implemented in SAS; its exports were checked separately against the intended logic and source records.
 
-1. **Model-only scoring:** checked probability validity and reproduced the displayed training/validation metrics from exported scores at the SAS assessment resolution.
-2. **Complete decision flow:** matched historical records by identifier and confirmed unchanged probabilities, labels, and partition membership. Approval assignments agreed with the saved rule on every row.
-3. **Public scoring:** checked all 100,000 applications against an independent source export, confirmed unique identifiers and valid probabilities, and found zero decision-rule disagreements.
+## Decision scoring
 
-Submissions used approval values already generated by SAS. Local Python checks verified file structure, identifier integrity, complete application coverage, and binary decisions before upload. Accepted submissions were recorded on October 8 and October 16, 2026. This repository contains documentation only; analysis code, generated-data tests, applicant-level outputs, and submission files are excluded.
+Model version 1.1 is connected to three separate SAS Intelligent Decisioning flows: `iLinkAutoLoans_AN_R1`, `iLinkAutoLoans_AN_Value`, and `iLinkAutoLoans_AN_Combined`. Each branch routes to the existing approval or decline rule set, which assigns integer approval values of 1 or 0.
 
-## Limitations
+The combined flow's historical scoring test checked all 100,000 records. Probabilities and default labels matched the earlier scored data by `LOAN_ID`, and every approval assignment matched the combined rule. Validation membership was recovered by joining IDs to the original scored file.
 
-The validation cohort informed both model and policy selection, so its metrics are not an independent final test. Public leaderboard results also inform development and may not hold on the private evaluation set. Probability calibration and borrower-group fairness have not been assessed. Financial comparisons use hypothetical assumptions, and competition scores do not represent realized bank profit.
+The combined public output contained 100,000 unique application IDs, matching an independently exported scoring input. All public decisions matched the combined rule, and probabilities were unchanged from the initial model. It retained all 65,145 initial approvals and added 2,082, producing 67,227 approvals and 32,773 declines.
 
-This repository describes the completed workflow and selected results. It is not a runnable model-training package. The expanded post-competition release will include permitted implementation details and identify any remaining reproduction requirements.
+The submission retained only `LOAN_ID` and `APPROVED`, in that order, from the SAS scoring output. The Python validator checked structure, row count, unique IDs, binary decisions, and exact reference ID coverage before upload. It validates the submission file; it does not evaluate predictive accuracy or calculate approval decisions.
+
+## Evaluation limits
+
+The validation cohort informed both model and policy selection, so these results are not an independent final test. Public leaderboard comparisons also inform development and may not hold on the private evaluation set. Probability calibration and borrower-group fairness have not been assessed. The illustrative loan values are separate from Kaggle's public score and do not represent realized bank profit.
+
+This repository includes the SAS workflow documentation, Python policy analysis, submission validation, and generated-data tests. Local data files and SAS exports are excluded. Exact model reproduction requires access to SAS Viya and competition data, along with the unrecorded partition seed and SAS configuration exports.
+
+
+## October 29 cutoff test
+
+The combined 0.14 submission scored 50.005 on Kaggle and approved 68,811 public applications. A separate SAS decision, `iLinkAutoLoans_AN_Combined_016`, retains registered logistic model v1.1 and the existing value condition, raising only the PD cutoff from 0.14 to 0.16.
+
+Both SAS scoring tests completed successfully. The historical output is `AN_COMBINED_016_TRAIN_20261029`; the public output is `AN_C016_PUBLIC_20261029_R2`, both in the personal CASUSER library. The public test was rerun with a fresh table name after an output-table promotion name collision.
+
+The original validation cohort approved 28,905 of 40,000 loans (72.26%), including 1,832 defaults (6.34% of approvals). Public scoring approved 72,135 of 100,000 applications, adding 3,324 approvals versus 0.14.
+
+`scripts/prepare_sas_submission.py` compares the new SAS exports with the matching 0.14 exports by LOAN_ID. It checks unchanged probabilities within the older exports' ten-decimal precision (maximum difference below 5e-11), binary decisions, and agreement with the existing 0.14 approvals OR PD < 0.16 on every row. This is a baseline and threshold consistency check; the script does not recalculate the loan economics. Validation membership comes from the original partitioned scoring export. The two-column CSV passes the existing submission validator against all 100,000 official IDs.
+
+The 0.16 decision flow and submission preparation script were written on October 29. The script was used to check the SAS exports and prepare the two-column CSV.
+
+The policy analysis also compares 50%, 75%, and 100% loss assumptions. At a 0.16 cutoff, using 75% loss in the value rule approved 29,980 validation loans (74.95%), with a 6.82% default rate among approvals. Under the historical 75% loss scenario, this produced $36.836M versus $36.674M for the current 0.16 combined rule. The gain is small and uses the same validation cohort, so this is a candidate to test rather than a confirmed improvement.
+
+The saved comparison covers the following validation results. Scenario values are in USD millions and use the same 40,000 validation loans.
+
+| PD cutoff | Loss used in value rule | Approved | Approved default rate | Value at 50% loss | Value at 75% loss | Value at 100% loss |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.14 | 100% | 27,535 | 5.931% | 44.908 | 36.660 | 28.412 |
+| 0.16 | 100% | 28,905 | 6.338% | 45.953 | 36.674 | 27.395 |
+| 0.18 | 100% | 30,260 | 6.801% | 46.947 | 36.609 | 26.272 |
+| 0.20 | 100% | 31,498 | 7.264% | 47.574 | 36.126 | 24.677 |
+| 0.14 | 75% | 29,350 | 6.719% | 46.491 | 36.699 | 26.907 |
+| 0.16 | 75% | 29,980 | 6.821% | 47.021 | 36.836 | 26.652 |
+| 0.14 | 50% | 33,081 | 8.295% | 48.139 | 34.812 | 21.484 |
+
+The local files saved from this work are:
+
+- `data/policy_comparison_20261029.txt`: the policy comparison output.
+- `data/sas_combined016_tests_20261029.jpg`: both completed SAS scoring tests.
+- `data/submission_AN_COMBINED_016_20261029.csv`: the validated two-column CSV.
+- `table_AN_COMBINED_016_TRAIN_20261029.csv` and `table_AN_C016_PUBLIC_20261029_R2.csv` in Downloads: the full historical and public SAS exports.
+
+These files remain local. The scripts and aggregate results are tracked in Git.

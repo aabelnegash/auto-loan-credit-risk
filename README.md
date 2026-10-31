@@ -1,85 +1,83 @@
 # Auto Loan Credit Risk
 
-## Project overview
+This is the auto-loan credit risk project I worked on for the [SAS Hackathon 2026 Student Track](https://www.kaggle.com/competitions/sas-hackathon-2026). I used SAS Viya to compare default-risk models, build loan approval rules, and score 100,000 applications.
 
-Default-risk modeling and auto-loan decisioning using SAS Viya. The project uses synthetic loan data for the fictional iLink Capital Bank in the [SAS Hackathon 2026 Student Track](https://www.kaggle.com/competitions/sas-hackathon-2026).
+The synthetic data represents the fictional iLink Capital Bank. It includes 100,000 historical loans for model development and 100,000 applications for scoring.
 
-The project connects predictive modeling to a tested lending decision flow. Work completed through October 16, 2026 includes model comparison, fitting diagnostics, model registration, approval-policy evaluation, full application scoring, and accepted Kaggle submissions.
+**Tools:** SAS Visual Analytics, Model Studio, Model Manager, Intelligent Decisioning, Python, pandas, and NumPy.
 
-**Tools:** SAS Visual Analytics, Model Studio, Model Manager, Intelligent Decisioning, and Python for local output checks.
+## SAS workflow
 
-> **Publication scope:** This repository contains documentation only. Modeling, financial-analysis, and decision-policy implementations remain private during the competition. [Kaggle Rule 6(b)](https://www.kaggle.com/competitions/sas-hackathon-2026/rules) requires publicly shared competition code to also be made available through the competition's discussion forum or notebooks. No competition code is released in this repository.
+Most of the project was built in SAS Viya. I used Python for the policy comparisons and checks on the exported files.
 
-## Workflow
-
-| Stage | Tool | Completed work |
-| --- | --- | --- |
-| Exploration | Visual Analytics | Reviewed loan data and an initial decision-tree model |
-| Modeling | Model Studio | Compared candidate models, reviewed fitting diagnostics, and tested preprocessing changes |
-| Registration | Model Manager | Registered the selected Forward Logistic Regression model |
-| Decisioning | Intelligent Decisioning | Compared approval policies and tested the complete decision flow |
-| Verification | Python and Kaggle | Audited scoring outputs and validated submission files before upload |
-
-## Data
-
-The modeling dataset contains 100,000 historical loans with a binary default outcome. Models were compared using a stratified 60% training / 40% validation split. Application identifiers were excluded from predictors and retained for matching scoring results.
-
-## Modeling approach
-
-Logistic regression, decision tree, forest, gradient boosting, neural network, and ensemble models were evaluated on the same validation partition. Model selection considered ranking performance, probability error, fitting diagnostics, and the difference between training and validation results.
-
-### Selected development candidates
-
-The leading completed trials produced the following results on the same 40,000-loan validation cohort. These runs used different pipelines and configurations; they are development comparisons rather than an exhaustive benchmark of each algorithm.
-
-| Candidate | Training AUC | Validation AUC | Validation KS | Validation log loss |
-| --- | ---: | ---: | ---: | ---: |
-| Standardized Forward Logistic Regression | 0.7975 | 0.7992 | 0.4490 | 0.3208 |
-| Ensemble, revised trial | 0.7969 | 0.7987 | 0.4484 | 0.3212 |
-| Gradient Boosting, revised trial | 0.8257 | 0.7960 | 0.4471 | 0.3229 |
-
-Forward Logistic Regression was selected for its validation results and close training/validation performance. Gradient Boosting had a larger AUC gap, while the ensemble performed similarly to the selected model. The small differences between the leading candidates have not been established as statistically significant.
-
-### Fitting diagnostics
-
-The original logistic fit produced **13 information-matrix warnings** and large coefficient standard errors. After numeric standardization was added to the existing preprocessing path, the selected fit satisfied its convergence criterion and produced **zero information-matrix warnings**. Validation performance changed only slightly.
-
-This resolved the recorded matrix warnings without establishing their exact cause or the reliability of every coefficient. The [methodology](docs/methodology.md) includes the initial model comparison, metric definitions, and complete training/validation results for the selected fit.
-
-## Decisioning and scoring
-
-The registered model was connected to a SAS Intelligent Decisioning flow that converts default probabilities into approval decisions. The flow scores each application, evaluates the approval branch, assigns a binary outcome, and returns the result.
-
-Policy evaluation considered approval volume, observed defaults, and illustrative loan-value scenarios. Predictive model quality and lending-policy performance were assessed separately because a stronger risk ranking does not automatically produce a better financial outcome.
-
-### Scoring audit
-
-The completed flow scored the historical dataset and all 100,000 public applications. Historical probabilities were unchanged between the model-only test and the complete decision flow. The public scoring audit verified:
-
-| Check | Result |
+| Tool | What I did |
 | --- | --- |
-| Applications scored | 100,000 |
-| Unique, nonmissing application identifiers | 100,000 |
-| Coverage against an independent input export | Exact match |
-| Missing or invalid probabilities | 0 |
-| Approval values | Binary on every row |
-| Disagreements with the saved decision rule | 0 |
+| Model Studio | Compared models on the same 60/40 partition, added imputation and interval standardization, and selected Forward Logistic Regression. |
+| Model Manager | Registered the selected model as version 1.1 for scoring. |
+| Intelligent Decisioning | Connected the model to approval rules, assigned approval and decline outputs, and ran historical and public scoring tests. |
+| Python | Compared policy assumptions and checked exported probabilities, approval decisions, and all 100,000 application IDs. |
 
-The submission retained the approval values generated by SAS. Local checks verified the required file structure and application coverage before upload.
+The Model Studio pipeline used for the standardized logistic model:
 
-## Competition result
+![Model Studio pipeline with preprocessing, candidate models, ensemble, and model comparison](docs/images/model-studio-pipeline.png)
 
-| Submission date | Milestone | Kaggle public score |
-| --- | --- | ---: |
-| October 8, 2026 | Initial submission | 48.168 |
-| October 16, 2026 | Revised approval policy | **49.548** |
+The [SAS workflow walkthrough](docs/sas-workflow.md) includes screenshots of the model comparison, assessment results, preprocessing settings, decision flow, SAS branch expression, and completed scoring tests.
 
-The revised policy increased the public score by **1.380 points** using the same registered model. The improvement came from the approval policy; the model was not retrained. These are interim competition results, not final rankings or realized bank profit.
+## Model results
 
-Further model development continues in the private working repository, with the revised policy retained as the current best submission.
+The scoring flow applies imputation and standardization before prediction. Standardization reduced information-matrix warnings from 13 to 0 while keeping similar validation performance.
 
-## Publication scope
+| Metric | Training | Validation |
+| --- | ---: | ---: |
+| AUC | 0.7975 | 0.7992 |
+| KS | 0.4436 | 0.4490 |
+| Average squared error | 0.0962 | 0.0961 |
+| Log loss | 0.3210 | 0.3208 |
 
-This repository documents the completed SAS workflow and selected aggregate results. Modeling configurations, probability and loan-value analysis, decision thresholds, detailed policy experiments, Python scripts, and tests remain in the private working repository while the competition is active.
+## Policy results
 
-An expanded technical repository will be published after the competition concludes, subject to the competition's data and sharing restrictions. Competition datasets, applicant-level outputs, and submission files are excluded from this repository.
+I tested a default-probability cutoff, a value-only rule, and a combined rule that approves a loan when either condition is met. These comparisons used the same registered model, version 1.1.
+
+| Policy | Kaggle public score |
+| --- | ---: |
+| Initial cutoff, PD < 0.13 | 48.168 |
+| Value-only | 47.082 |
+| Combined, PD < 0.13 | 49.548 |
+| Combined, PD < 0.14 | **50.005** |
+
+The combined 0.14 policy improved the initial public score by **1.837** and approved 68,811 of 100,000 scoring applications.
+
+On October 29, I wrote a combined 0.16 version of the decision flow and a Python script to prepare and validate its output. The SAS flow approved 28,905 of 40,000 validation loans, with a 6.34% default rate among approvals. It approved 72,135 scoring applications, adding 3,324 approvals compared with 0.14. The exported CSV passed the rule and ID coverage checks.
+
+## Code and notes
+
+- [SAS workflow](docs/sas-workflow.md): Model Studio development, model registration, and Intelligent Decisioning scoring.
+- [Policy analysis](scripts/analyze_policy.py): compares approval cutoffs and loan-loss assumptions.
+- [CSV preparation](scripts/prepare_sas_submission.py): checks the SAS exports against the 0.14 baseline and prepares the two-column file.
+- [CSV validation](scripts/validate_submission.py): checks columns, row count, unique IDs, binary decisions, and official ID coverage.
+- [Methodology](docs/methodology.md): model choices, financial assumptions, detailed results, and evaluation limits.
+
+Competition data, SAS scoring exports, and generated CSVs are kept locally. The Python scripts and validation tests are included here. Running the SAS workflow requires SAS Viya and the competition data.
+
+## Run the Python checks
+
+From the repository root, install the analysis packages:
+
+```bash
+python -m pip install pandas numpy
+```
+
+The validator tests use generated records and run without the competition data:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+The analysis and CSV preparation scripts use local SAS exports from the Downloads folder. The required filenames are listed at the top of each script. CSV preparation also needs `data/official_ids.csv`, the independently exported scoring IDs.
+
+```bash
+python scripts/analyze_policy.py
+python scripts/prepare_sas_submission.py
+```
+
+These scripts compare policies and check SAS outputs. The model itself was built and scored in SAS Viya.

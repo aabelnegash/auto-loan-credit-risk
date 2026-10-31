@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#020617">
-  <meta name="description" content="An in-progress SAS Hackathon project covering auto-loan default-risk modeling, approval decisions, and scoring verification using synthetic data.">
+  <meta name="description" content="A SAS Hackathon 2026 project covering auto-loan default-risk modeling, approval decisions, and scoring verification using synthetic data.">
   <title>Auto Loan Credit Risk</title>
   <link rel="canonical" href="https://aabelnegash.github.io/auto-loan-credit-risk/">
   <link rel="stylesheet" href="portfolio.css">
@@ -29,10 +29,10 @@
         <p class="eyebrow">SAS Hackathon 2026 · Student Track</p>
         <h1 id="project-title">Auto Loan<br>Credit Risk</h1>
         <p class="hero-description">Default-risk modeling and loan approval decisions using SAS Viya and synthetic loan data.</p>
-        <div class="hero-status"><span class="status-marker" aria-hidden="true"></span>In progress</div>
+        <div class="hero-status"><span class="status-marker" aria-hidden="true"></span>Hackathon project</div>
       </div>
       <aside class="snapshot" aria-labelledby="snapshot-title">
-        <div class="snapshot-header"><h2 id="snapshot-title">Public snapshot</h2><time datetime="2026-10-16">October 16, 2026</time></div>
+        <div class="snapshot-header"><h2 id="snapshot-title">Public snapshot</h2><time datetime="2026-10-29">October 29, 2026</time></div>
         <p class="snapshot-label">Selected model</p>
         <p class="snapshot-model">Forward Logistic Regression</p>
         <dl class="snapshot-metrics">
@@ -40,7 +40,7 @@
           <div><dt>Validation loans</dt><dd>40,000</dd></div>
           <div><dt>Applications audited</dt><dd>100,000</dd></div>
         </dl>
-        <p class="snapshot-note">Published aggregate results. Development continues during the competition.</p>
+        <p class="snapshot-note">SAS workflow, policy results, Python checks, and screenshots are available in the repository.</p>
       </aside>
     </div>
 
@@ -74,6 +74,15 @@
             <li><div><h3>Register &amp; score</h3><p>Register the selected model in Model Manager and connect it to an approval flow in Intelligent Decisioning.</p></div></li>
             <li><div><h3>Verify outputs</h3><p>Audit application coverage, probabilities, approval assignments, and submission format before uploading to Kaggle.</p></div></li>
           </ol>
+          <figure style="margin: 24px 0;">
+            <a href="docs/images/model-studio-pipeline.png"><img src="docs/images/model-studio-pipeline.png" alt="Model Studio pipeline with preprocessing and model comparison" style="width: 100%; height: auto;" loading="lazy"></a>
+            <figcaption>Model Studio pipeline used for the standardized logistic model.</figcaption>
+          </figure>
+          <figure style="margin: 24px 0;">
+            <a href="docs/images/decision-flow.png"><img src="docs/images/decision-flow.png" alt="Intelligent Decisioning flow with model scoring and approval and decline branches" style="width: 100%; height: auto;" loading="lazy"></a>
+            <figcaption>The combined 0.16 decision flow in Intelligent Decisioning.</figcaption>
+          </figure>
+          <a class="text-link" href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/docs/sas-workflow.md">See the SAS settings, approval rule, and scoring tests <span aria-hidden="true">↗</span></a>
         </section>
 
         <section class="content-section" id="results" aria-labelledby="results-heading">
@@ -87,29 +96,31 @@
             <li>Binary approval values on every row</li>
             <li>No disagreements with the saved decision rule</li>
           </ul>
-          <h3>Competition progress</h3>
+          <h3>Recorded public scores</h3>
           <div class="table-wrap">
             <table>
-              <caption>Interim Kaggle public scores</caption>
+              <caption>Kaggle public scores</caption>
               <thead><tr><th scope="col">Submission</th><th scope="col">Milestone</th><th scope="col">Public score</th></tr></thead>
               <tbody>
-                <tr><th scope="row"><time datetime="2026-10-08">October 8, 2026</time></th><td>Initial submission</td><td>48.168</td></tr>
-                <tr><th scope="row"><time datetime="2026-10-16">October 16, 2026</time></th><td>Revised approval policy</td><td>49.548</td></tr>
+                <tr><th scope="row"><time datetime="2026-10-08">October 8, 2026</time></th><td>Initial cutoff, PD &lt; 0.13</td><td>48.168</td></tr>
+                <tr><th scope="row"><time datetime="2026-10-16">October 16, 2026</time></th><td>Value-only</td><td>47.082</td></tr>
+                <tr><th scope="row"><time datetime="2026-10-16">October 16, 2026</time></th><td>Combined, PD &lt; 0.13</td><td>49.548</td></tr>
+                <tr><th scope="row"><time datetime="2026-10-16">October 16, 2026</time></th><td>Combined, PD &lt; 0.14</td><td>50.005</td></tr>
               </tbody>
             </table>
           </div>
-          <p class="result-note">The revised approval policy improved the public score by 1.380 points using the same registered model. These scores are interim competition results, not final rankings or realized bank profit.</p>
+          <p class="result-note">The combined 0.14 policy improved the initial public score by 1.837 points using the same registered model. These are recorded public scores, not final rankings or realized bank profit.</p>
           <div class="evaluation-note">
             <h3>Evaluation limits</h3>
             <p>The validation cohort informed model and policy selection, so it is not an independent final test. Probability calibration and borrower-group fairness have not been assessed. Public leaderboard results may differ from the private evaluation results.</p>
           </div>
-          <a class="text-link" href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/docs/methodology.md">Read the public methodology <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/docs/methodology.md">Read the methodology <span aria-hidden="true">↗</span></a>
         </section>
 
         <section class="content-section last-section" id="project-status" aria-labelledby="status-heading">
           <h2 id="status-heading">Project status</h2>
-          <p>The hackathon project is in progress. This page summarizes work documented through <time datetime="2026-10-16">October 16, 2026</time>.</p>
-          <p>The public repository contains documentation and selected aggregate results. Implementation code, model configurations, decision thresholds, and detailed policy experiments remain private during the competition. Competition datasets and applicant-level outputs are excluded.</p>
+          <p>This page covers my SAS Hackathon 2026 work. On October 29, I also wrote and tested a combined 0.16 decision flow and a Python script to check its scoring output.</p>
+          <p>The repository includes the SAS workflow, screenshots, approval-rule expression, Python policy analysis, and validation tests. Competition datasets and applicant-level outputs are kept locally.</p>
           <a class="text-link" href="https://github.com/aabelnegash/auto-loan-credit-risk">View public repository <span aria-hidden="true">↗</span></a>
         </section>
       </div>
@@ -123,7 +134,14 @@
           <li><a href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/LICENSE">LICENSE<span aria-hidden="true">↗</span></a></li>
         </ul></details>
         <details class="file-group" open><summary>docs/<span aria-hidden="true">↗</span></summary><ul>
+          <li><a href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/docs/sas-workflow.md">sas-workflow.md<span aria-hidden="true">↗</span></a></li>
           <li><a href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/docs/methodology.md">methodology.md<span aria-hidden="true">↗</span></a></li>
+        </ul></details>
+        <details class="file-group" open><summary>scripts/ and tests/<span aria-hidden="true">↗</span></summary><ul>
+          <li><a href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/scripts/analyze_policy.py">analyze_policy.py<span aria-hidden="true">↗</span></a></li>
+          <li><a href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/scripts/prepare_sas_submission.py">prepare_sas_submission.py<span aria-hidden="true">↗</span></a></li>
+          <li><a href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/scripts/validate_submission.py">validate_submission.py<span aria-hidden="true">↗</span></a></li>
+          <li><a href="https://github.com/aabelnegash/auto-loan-credit-risk/blob/main/tests/test_validate_submission.py">test_validate_submission.py<span aria-hidden="true">↗</span></a></li>
         </ul></details>
       </div>
     </section>

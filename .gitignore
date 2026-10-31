@@ -13,13 +13,6 @@ private/
 *.parquet
 *.zip
 
-# Code is maintained locally
-scripts/
-tests/
-*.py
-*.sas
-*.ds2
-
 # Screenshots and reference documents
 screenshots/
 *.png
@@ -28,6 +21,9 @@ screenshots/
 *.webp
 *.pdf
 *.docx
+
+# Screenshots selected for the SAS workflow write-up
+!docs/images/*.png
 
 # Credentials and local environment
 .env
@@ -44,3 +40,7 @@ __pycache__/
 tmp/
 .DS_Store
 Thumbs.db
+
+# SAS scoring exports are kept local
+*.sas
+*.ds2
