@@ -22,6 +22,9 @@ screenshots/
 *.pdf
 *.docx
 
+# Screenshots selected for the SAS workflow write-up
+!docs/images/*.png
+
 # Credentials and local environment
 .env
 .env.*

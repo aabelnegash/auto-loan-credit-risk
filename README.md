@@ -17,7 +17,11 @@ Most of the project was built in SAS Viya. I used Python for the policy comparis
 | Intelligent Decisioning | Connected the model to approval rules, assigned approval and decline outputs, and ran historical and public scoring tests. |
 | Python | Compared policy assumptions and checked exported probabilities, approval decisions, and all 100,000 application IDs. |
 
-The [SAS workflow walkthrough](docs/sas-workflow.md) shows the model settings, decision flow, SAS branch expression, and scoring tests.
+The Model Studio pipeline used for the standardized logistic model:
+
+![Model Studio pipeline with preprocessing, candidate models, ensemble, and model comparison](docs/images/model-studio-pipeline.png)
+
+The [SAS workflow walkthrough](docs/sas-workflow.md) includes screenshots of the model comparison, assessment results, preprocessing settings, decision flow, SAS branch expression, and completed scoring tests.
 
 ## Model results
 

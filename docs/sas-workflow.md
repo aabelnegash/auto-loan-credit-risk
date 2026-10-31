@@ -20,6 +20,10 @@ I used 100,000 historical loans and a stratified 60% training / 40% validation p
 
 I compared logistic regression, decision tree, forest, gradient boosting, neural network, and ensemble models on the same partition. The selected path used Imputation, a Transform node to standardize interval inputs, and Forward Logistic Regression. Categorical inputs remained categorical.
 
+![LR-Standardized pipeline in Model Studio](images/model-studio-pipeline.png)
+
+The pipeline shows the separate model branches and the Model Comparison node used to assess them.
+
 | Setting | Value |
 | --- | --- |
 | Training / validation records | 60,000 / 40,000 |
@@ -32,6 +36,29 @@ I compared logistic regression, decision tree, forest, gradient boosting, neural
 The original logistic fit produced 13 information-matrix warnings. I added interval standardization and reran the model. Both fits met the convergence criterion, but the standardized fit produced none of those information-matrix warnings.
 
 The selected model had training AUC 0.7975 and validation AUC 0.7992. The other assessment figures are in the [README](../README.md#model-results).
+
+![Validation model comparison with standardized Forward Logistic Regression marked as champion](images/model-comparison.png)
+
+In this pipeline comparison, the standardized logistic model is marked as champion, with validation AUC 0.7992 and KS 0.4490. The gradient boosting row is the default run; the separate manual trial is discussed in the [methodology](methodology.md#model-development).
+
+![Standardized logistic assessment showing cumulative lift, ROC, fit statistics, and event classification](images/logistic-assessment.png)
+
+The assessment view shows the training and validation curves and fit statistics. Its classification cutoffs are separate from the loan-approval cutoffs used in Intelligent Decisioning.
+
+### Standardization and model-selection settings
+
+The Transformations node uses **Standardization** as the default interval-input method. The logistic node uses **Forward** selection and **SBC (BIC)** for effect selection, stopping, and choosing the final model.
+
+| Transformations settings | Logistic selection settings |
+| --- | --- |
+| ![Transformations node with interval-input standardization selected](images/standardization-settings.png) | ![Logistic node with Forward selection and SBC criteria](images/logistic-selection-settings.png) |
+
+<details>
+<summary>Standardization settings in the full pipeline</summary>
+
+![Transformations node selected in the LR-Standardized pipeline](images/standardization-pipeline.png)
+
+</details>
 
 The saved node logs are `Log for Node _Forward Logistic Regression_.log` and `Log for Node _Forward Logistic Regression - Standardized_.log`. They record the model settings and the change in information-matrix warnings.
 
@@ -46,6 +73,10 @@ The approval-policy comparisons used this same registered model. Changing the ap
 I built separate decision flows for the initial cutoff, the value-only policy, and the combined policy. The combined rule approves a loan when its predicted default probability is below the cutoff or its expected loan value is positive.
 
 The later decision is `iLinkAutoLoans_AN_Combined_016`, decision version 1.0. It uses model version 1.1 and a 0.16 probability cutoff.
+
+![Combined 0.16 decision flow with logistic model, approval branch, and approval and decline rule sets](images/decision-flow.png)
+
+The model feeds the Auto Loan Approvals branch. The Yes path goes to Approve Auto Loan, and the No path goes to Not Approved Auto Loan. The validation message confirms that all objects validated successfully.
 
 ```text
 Application inputs
@@ -74,6 +105,8 @@ Otherwise decline.
 
 The branch expression below is the SAS condition used for the combined 0.16 flow. The true path goes to the approval rule set, and the false path goes to the decline rule set.
 
+![SAS expression editor showing the 0.16 cutoff, input checks, and loan-value condition](images/approval-expression.png)
+
 <details>
 <summary>Combined 0.16 SAS branch expression</summary>
 
@@ -101,6 +134,17 @@ The checks reject missing or out-of-range probabilities and invalid loan inputs.
 ## Scoring tests
 
 I validated the decision and ran separate historical and public scoring tests in Intelligent Decisioning. Both tests completed successfully using decision version 1.0.
+
+![Historical and public scoring tests with successful status and public test details](images/public-scoring-test.png)
+
+Both tests show successful status. The public test details show that it completed on October 29 using decision version 1.0.
+
+<details>
+<summary>Historical scoring test details</summary>
+
+![Successful historical scoring test with the original validation-cohort audit description](images/historical-scoring-test.png)
+
+</details>
 
 | Test | Input | CASUSER output table |
 | --- | --- | --- |
