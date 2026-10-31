@@ -58,3 +58,26 @@ On October 29, I wrote a combined 0.16 version of the decision flow and a Python
 - [Methodology](docs/methodology.md): model choices, financial assumptions, detailed results, and evaluation limits.
 
 Competition data, SAS scoring exports, and generated CSVs are kept locally. The Python scripts and validation tests are included here. Running the SAS workflow requires SAS Viya and the competition data.
+
+## Run the Python checks
+
+From the repository root, install the analysis packages:
+
+```bash
+python -m pip install pandas numpy
+```
+
+The validator tests use generated records and run without the competition data:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+The analysis and CSV preparation scripts use local SAS exports from the Downloads folder. The required filenames are listed at the top of each script. CSV preparation also needs `data/official_ids.csv`, the independently exported scoring IDs.
+
+```bash
+python scripts/analyze_policy.py
+python scripts/prepare_sas_submission.py
+```
+
+These scripts compare policies and check SAS outputs. The model itself was built and scored in SAS Viya.

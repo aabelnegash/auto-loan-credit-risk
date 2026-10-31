@@ -72,7 +72,7 @@ The submission retained only `LOAN_ID` and `APPROVED`, in that order, from the S
 
 The validation cohort informed both model and policy selection, so these results are not an independent final test. Public leaderboard comparisons also inform development and may not hold on the private evaluation set. Probability calibration and borrower-group fairness have not been assessed. The illustrative loan values are separate from Kaggle's public score and do not represent realized bank profit.
 
-This private repository tracks Python analysis, submission validation, and generated-data tests. Local data files and SAS exports are excluded. Exact model reproduction requires access to SAS Viya and competition data, along with the unrecorded partition seed and SAS configuration exports.
+This repository includes the SAS workflow documentation, Python policy analysis, submission validation, and generated-data tests. Local data files and SAS exports are excluded. Exact model reproduction requires access to SAS Viya and competition data, along with the unrecorded partition seed and SAS configuration exports.
 
 
 ## October 29 cutoff test

@@ -59,6 +59,7 @@ for dataset, new_file, old_file in files:
 
 submission = public[["LOAN_ID", "APPROVED"]].astype("int64")
 output = data / f"submission_{name}.csv"
+data.mkdir(exist_ok=True)
 submission.to_csv(output, index=False)
 print(validate_submission(output, expected_ids=data / "official_ids.csv"))
 print("Saved:", output)

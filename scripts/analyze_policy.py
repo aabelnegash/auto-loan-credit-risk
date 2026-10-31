@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
+
+folder = Path.home() / "Downloads"
 
 scores = pd.read_csv(
-    r"C:\Users\14044\Downloads\table_AN_LR_PD_LABELED.csv",
+    folder / "table_AN_LR_PD_LABELED.csv",
     usecols=[
         "LOAN_ID",
         "DEFAULT",
@@ -13,7 +16,6 @@ scores = pd.read_csv(
 )
 
 print(scores.shape)
-print(scores.head())
 print(scores.dtypes)
 
 
@@ -38,7 +40,7 @@ print("Defaults among approvals:", current_approved["DEFAULT"].sum())
 print("Default rate among approvals:", current_approved["DEFAULT"].mean())
 
 loans = pd.read_csv(
-    r"C:\Users\14044\Downloads\table_ILINK_CREDITRISK_TRAINING.csv",
+    folder / "table_ILINK_CREDITRISK_TRAINING.csv",
     usecols=[
         "LOAN_ID",
         "LOAN_AMOUNT",
@@ -51,7 +53,6 @@ loans = pd.read_csv(
 
 print(loans.shape)
 print(loans.dtypes)
-print(loans.head())
 
 loans["LOAN_ID"] = loans["LOAN_ID"].str.replace("\ufeff", "", regex=False)
 loans["LOAN_ID"] = loans["LOAN_ID"].str.replace('"', "", regex=False)
