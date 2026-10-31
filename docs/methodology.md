@@ -52,9 +52,9 @@ Results on the 40,000 validation loans:
 
 The combined policy retained all initial approvals and added 853 validation loans, including 126 observed defaults. Its historical scenario value exceeded the initial policy by USD 130,865.26 under the stated assumptions. The larger approval volume also increased the default rate among approved loans.
 
-The value-only policy had the highest historical scenario value but scored below the initial policy on Kaggle. The combined policy produced the best public score, 49.548, compared with 48.168 initially and 47.082 for value-only. This difference shows why the illustrative calculation is not a substitute for the competition's undisclosed scoring formula.
+The value-only policy had the highest historical scenario value but scored below the initial policy on Kaggle. Among these three policies, the combined policy produced the best public score, 49.548, compared with 48.168 initially and 47.082 for value-only. The later 0.14 combined policy scored 50.005. This difference shows why the illustrative calculation is not a substitute for the competition's undisclosed scoring formula.
 
-The analysis script currently compares the initial and value-only policies. The combined rule is implemented in SAS; its exports were checked separately against the intended logic and source records.
+The analysis script compares the initial, value-only, and combined policies, including cutoff and loss assumptions. The combined rule is implemented in SAS; its exports were checked separately against the intended logic and source records.
 
 ## Decision scoring
 
@@ -83,6 +83,27 @@ The original validation cohort approved 28,905 of 40,000 loans (72.26%), includi
 
 `scripts/prepare_sas_submission.py` compares the new SAS exports with the matching 0.14 exports by LOAN_ID. It checks unchanged probabilities within the older exports' ten-decimal precision (maximum difference below 5e-11), binary decisions, and agreement with the existing 0.14 approvals OR PD < 0.16 on every row. This is a baseline and threshold consistency check; the script does not recalculate the loan economics. Validation membership comes from the original partitioned scoring export. The two-column CSV passes the existing submission validator against all 100,000 official IDs.
 
-Kaggle upload is pending. These checks establish scoring and file integrity; they do not establish an improvement in the hidden Responsible Profit Score.
+The 0.16 decision flow and submission preparation script were written on October 29. The script was used to check the SAS exports and prepare the two-column CSV.
 
 The policy analysis also compares 50%, 75%, and 100% loss assumptions. At a 0.16 cutoff, using 75% loss in the value rule approved 29,980 validation loans (74.95%), with a 6.82% default rate among approvals. Under the historical 75% loss scenario, this produced $36.836M versus $36.674M for the current 0.16 combined rule. The gain is small and uses the same validation cohort, so this is a candidate to test rather than a confirmed improvement.
+
+The saved comparison covers the following validation results. Scenario values are in USD millions and use the same 40,000 validation loans.
+
+| PD cutoff | Loss used in value rule | Approved | Approved default rate | Value at 50% loss | Value at 75% loss | Value at 100% loss |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.14 | 100% | 27,535 | 5.931% | 44.908 | 36.660 | 28.412 |
+| 0.16 | 100% | 28,905 | 6.338% | 45.953 | 36.674 | 27.395 |
+| 0.18 | 100% | 30,260 | 6.801% | 46.947 | 36.609 | 26.272 |
+| 0.20 | 100% | 31,498 | 7.264% | 47.574 | 36.126 | 24.677 |
+| 0.14 | 75% | 29,350 | 6.719% | 46.491 | 36.699 | 26.907 |
+| 0.16 | 75% | 29,980 | 6.821% | 47.021 | 36.836 | 26.652 |
+| 0.14 | 50% | 33,081 | 8.295% | 48.139 | 34.812 | 21.484 |
+
+The local files saved from this work are:
+
+- `data/policy_comparison_20261029.txt`: the policy comparison output.
+- `data/sas_combined016_tests_20261029.jpg`: both completed SAS scoring tests.
+- `data/submission_AN_COMBINED_016_20261029.csv`: the validated two-column CSV.
+- `table_AN_COMBINED_016_TRAIN_20261029.csv` and `table_AN_C016_PUBLIC_20261029_R2.csv` in Downloads: the full historical and public SAS exports.
+
+These files remain local. The scripts and aggregate results are tracked in Git.
