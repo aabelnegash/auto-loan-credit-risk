@@ -2,12 +2,16 @@
 
 I used Model Studio to develop the default-risk model, Model Manager to register it, and Intelligent Decisioning to turn the predictions into approval decisions. This page covers that part of the hackathon work.
 
-```mermaid
-flowchart LR
-    A[Model Studio: compare and select a model] --> B[Model Manager: register model v1.1]
-    B --> C[Intelligent Decisioning: score and apply approval rules]
-    C --> D[Historical and public scoring outputs]
-    D --> E[Python: compare policies and validate the CSV]
+```text
+Model Studio: compare and select a model
+    ↓
+Model Manager: register model v1.1
+    ↓
+Intelligent Decisioning: score and apply approval rules
+    ↓
+Historical and public scoring outputs
+    ↓
+Python: compare policies and validate the CSV
 ```
 
 ## Model Studio
@@ -43,15 +47,18 @@ I built separate decision flows for the initial cutoff, the value-only policy, a
 
 The later decision is `iLinkAutoLoans_AN_Combined_016`, decision version 1.0. It uses model version 1.1 and a 0.16 probability cutoff.
 
-```mermaid
-flowchart TD
-    A[Application inputs] --> B[Preprocessing and registered logistic model]
-    B --> C[Predicted default probability]
-    C --> D{Valid inputs and combined approval condition?}
-    D -->|True| E[Approval rule set: APPROVED = 1]
-    D -->|False| F[Decline rule set: APPROVED = 0]
-    E --> G[Scoring output with LOAN_ID]
-    F --> G
+```text
+Application inputs
+    ↓
+Preprocessing and registered logistic model
+    ↓
+Predicted default probability
+    ↓
+Valid inputs and combined approval condition?
+    ├─ True  → Approval rule set → APPROVED = 1
+    └─ False → Decline rule set  → APPROVED = 0
+
+Both paths produce a scoring output with LOAN_ID.
 ```
 
 The value calculation uses principal, annual interest rate, and loan term in months to calculate scheduled full-term interest. It assumes that repayers pay the scheduled interest and defaults lose the original principal. The [methodology](methodology.md#initial-cutoff-evaluation) explains those assumptions.
