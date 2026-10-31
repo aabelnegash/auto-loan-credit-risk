@@ -1,4 +1,4 @@
-# Auto Loan Credit Risk
+# SAS Hackathon: Auto Loan Credit Risk
 
 This is the auto-loan credit risk project I worked on for the [SAS Hackathon 2026 Student Track](https://www.kaggle.com/competitions/sas-hackathon-2026). I used SAS Viya to compare default-risk models, build loan approval rules, and score 100,000 applications.
 
