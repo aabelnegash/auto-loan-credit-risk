@@ -6,12 +6,18 @@ The synthetic data represents the fictional iLink Capital Bank. It includes 100,
 
 **Tools:** SAS Visual Analytics, Model Studio, Model Manager, Intelligent Decisioning, Python, pandas, and NumPy.
 
-## What I worked on
+## SAS workflow
 
-- Compared logistic regression, decision tree, forest, gradient boosting, neural network, and ensemble models using the same 60% training / 40% validation split.
-- Selected standardized Forward Logistic Regression and registered it in Model Manager.
-- Built approval rules in Intelligent Decisioning using predicted default probability and a loan value calculation.
-- Used Python to compare policies and check the exported CSVs for missing IDs, duplicate records, and invalid approval values.
+Most of the project was built in SAS Viya. I used Python for the policy comparisons and checks on the exported files.
+
+| Tool | What I did |
+| --- | --- |
+| Model Studio | Compared models on the same 60/40 partition, added imputation and interval standardization, and selected Forward Logistic Regression. |
+| Model Manager | Registered the selected model as version 1.1 for scoring. |
+| Intelligent Decisioning | Connected the model to approval rules, assigned approval and decline outputs, and ran historical and public scoring tests. |
+| Python | Compared policy assumptions and checked exported probabilities, approval decisions, and all 100,000 application IDs. |
+
+The [SAS workflow walkthrough](docs/sas-workflow.md) shows the model settings, decision flow, SAS branch expression, and scoring tests.
 
 ## Model results
 
@@ -41,6 +47,7 @@ On October 29, I wrote a combined 0.16 version of the decision flow and a Python
 
 ## Code and notes
 
+- [SAS workflow](docs/sas-workflow.md): Model Studio development, model registration, and Intelligent Decisioning scoring.
 - [Policy analysis](scripts/analyze_policy.py): compares approval cutoffs and loan-loss assumptions.
 - [CSV preparation](scripts/prepare_sas_submission.py): checks the SAS exports against the 0.14 baseline and prepares the two-column file.
 - [CSV validation](scripts/validate_submission.py): checks columns, row count, unique IDs, binary decisions, and official ID coverage.

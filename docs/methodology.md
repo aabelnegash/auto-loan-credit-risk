@@ -1,5 +1,7 @@
 # Methodology
 
+The [SAS workflow walkthrough](sas-workflow.md) covers the Model Studio settings, model registration, Intelligent Decisioning branch expression, and scoring tests.
+
 ## Model development
 
 The training data was split into 60,000 training loans and 40,000 validation loans, stratified by `DEFAULT`. All model comparisons used the same partition. `LOAN_ID` was excluded from predictors.
